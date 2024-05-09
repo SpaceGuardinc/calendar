@@ -1,0 +1,23 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Plants" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="colorPrimary">@color/white</item>
+        <!-- Add the following item to define the AppTheme.PopupOverlay -->
+        <item name="android:popupMenuStyle">@style/AppTheme.PopupOverlay</item>
+    </style>
+
+    <style name="BoldCalendarDateTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+    <!-- Define the PopupOverlay style -->
+    <style name="AppTheme.PopupOverlay" parent="Widget.Material3.PopupMenu.Overflow">
+        <item name="android:popupBackground">@color/black</item>
+    </style>
+
+    <style name="Theme.Plants" parent="Base.Theme.Plants" />
+</resources>

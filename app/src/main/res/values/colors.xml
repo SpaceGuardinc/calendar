@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_blue">#025887</color>
+    <color name="light_blue">#6495ED</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="gray">#949495</color>
+    <color name="colorWatering">#FF5722</color>
+    <color name="colorFertilizing">#03A9F4</color>
+    <color name="colorPruning">#4CAF50</color>
+    <color name="colorFeeding">#FFC107</color>
+    <color name="colorPlanting">#9C27B0</color>
+    <color name="colorDigging">#673AB7</color>
+    <color name="colorHarvesting">#E91E63</color>
+</resources>

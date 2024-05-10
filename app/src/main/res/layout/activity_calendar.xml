@@ -50,10 +50,12 @@
 
 <!--</RelativeLayout>-->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <!-- Плашка с названием "Виды работ" -->
     <TextView
@@ -73,28 +75,69 @@
         android:id="@+id/spinnerWorkType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/textViewWorkTypes"
         android:layout_marginTop="8dp"
         android:background="@drawable/rounded_spinner_background"
         android:padding="16dp" />
 
+    <!--Переключение месяцов-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:orientation="horizontal"
+        android:layout_marginHorizontal="60dp"
+
+        >
+        
+        <ImageButton
+            android:id="@+id/arrow_previous"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/arrow_previous_16"
+            android:foregroundTint="@color/black"
+            android:backgroundTint="@android:color/transparent"
+           />
+
+        <TextView
+            android:id="@+id/calendarMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="18sp"
+            android:text="Month"
+            android:gravity="center"
+            tools:ignore="HardcodedText" />
+
+        <ImageButton
+            android:id="@+id/arrow_next"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/arrow_next_16"
+            android:foregroundTint="@color/black"
+            android:backgroundTint="@android:color/transparent"
+            />
+        
+
+    </LinearLayout>
+
     <!-- Календарь для выбора дат -->
     <com.kizitonwose.calendar.view.CalendarView
+        android:layout_marginTop="10dp"
         android:id="@+id/calendarView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/spinnerWorkType"
-        app:cv_dayViewResource="@layout/calendar_day_layout"/>
+        app:cv_dayViewResource="@layout/calendar_day_layout"
+        android:paddingHorizontal="50dp"
+        />
 
     <!-- Кнопка "Сохранить" -->
     <Button
         android:id="@+id/buttonSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/calendarView"
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
         android:textColor="@color/dark_blue"
         android:text="@string/save" />
 
-</RelativeLayout>
+</LinearLayout>

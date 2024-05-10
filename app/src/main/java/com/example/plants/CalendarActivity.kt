@@ -130,44 +130,60 @@
 package com.example.plants
 
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.CalendarView
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.plants.adapter.WorkTypeAdapter
-
 import com.example.plants.databinding.ActivityCalendarBinding
 import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.DayPosition
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.view.MonthDayBinder
 import com.kizitonwose.calendar.view.ViewContainer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
 
+data class SelectedDay(
+    val workType: String = "",
+    val dayDate: String = "",
+)
 
-class DayViewContainer(view: View) : ViewContainer(view) {
-    val textView = view.findViewById<TextView>(R.id.calendarDayText)
-
-}
 
 class CalendarActivity : AppCompatActivity() {
+
+
 
     private lateinit var binding: ActivityCalendarBinding
     private lateinit var spinner: Spinner
     private lateinit var calendarView: CalendarView
-    private var selectedWorkType: String = ""
-    private lateinit var dbHelper: DBHelper
+    private var currentYearMonth = MutableStateFlow(YearMonth.now())
+    private val selectedDaysState = MutableStateFlow(listOf<SelectedDay>())
 
+    private val dbHelper by lazy { DBHelper.getInstance(this) }
 
-   override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCalendarBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Инициализация DBHelper
-        dbHelper = DBHelper.getInstance(this)
+        selectedDaysState.value = dbHelper.getSelectedDays()
 
         spinner = binding.spinnerWorkType
         val workTypes = listOf(
@@ -179,26 +195,138 @@ class CalendarActivity : AppCompatActivity() {
             "Сбор урожая"
         )
 
+        val colorsArray = listOf(
+            Color.parseColor("#CD5C5C"),
+            Color.parseColor("#7FFF00"),
+            Color.parseColor("#00FFFF"),
+            Color.parseColor("#FF00FF"),
+            Color.parseColor("#00BFFF"),
+            Color.parseColor("#FFFF00"),
+
+            ).toTypedArray()
+
+        val workColors = workTypes.zip(colorsArray)
+
         val adapter = WorkTypeAdapter(this, workTypes, spinner)
         spinner.adapter = adapter
-
-        // Устанавливаем дефолтное значение
         spinner.setSelection(0)
+        spinner.onItemSelectedListener = object : OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                selectedDaysState.value = selectedDaysState.value + SelectedDay("", "")
+                selectedDaysState.value = selectedDaysState.value - SelectedDay("", "")
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+
+        }
+
 
         val calendarView = binding.calendarView
 
-        calendarView.dayBinder = object : MonthDayBinder<DayViewContainer> {
-            override fun create(view: View) = DayViewContainer(view)
+        lifecycleScope.launch {
+            selectedDaysState.collect { selectedDays ->
 
-           // Called every time we need to reuse a container.
-            override fun bind(container: DayViewContainer, data: CalendarDay) {
-               container.textView.text = data.date.dayOfMonth.toString()
-           }
-       }
-       val currentMonth = YearMonth.now()
-       val startMonth = currentMonth.minusMonths(100)
-       val endMonth = currentMonth.plusMonths(100)
-       val firstDayOfWeek = firstDayOfWeekFromLocale()
-       calendarView.setup(startMonth, endMonth, firstDayOfWeek)
+                calendarView.dayBinder = getDayBinder(
+                    onDayClick = { dayDate ->
+                        val selectedDay = SelectedDay(
+                            workTypes[spinner.selectedItemId.toInt()],
+                            dayDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        )
+                        if(selectedDays.any { it == selectedDay }){
+                            selectedDaysState.value = selectedDays - selectedDay
+                        }
+                        else {
+                            selectedDaysState.value = selectedDays + selectedDay
+                        }
+                    },
+                    checkSelected = { calendarDay ->
+                        selectedDays.any {
+                            it.dayDate == calendarDay.date.format(
+                                DateTimeFormatter.ISO_LOCAL_DATE
+                            ) && it.workType == workTypes[spinner.selectedItemId.toInt()]
+                        }
+                    },
+                    color = workColors[spinner.selectedItemId.toInt()].second
+                )
+            }
+        }
+
+
+        val currentMonth = YearMonth.now()
+        val startMonth = currentMonth.minusMonths(200)
+        val endMonth = currentMonth.plusMonths(200)
+        val firstDayOfWeek = firstDayOfWeekFromLocale()
+        calendarView.setup(startMonth, endMonth, firstDayOfWeek)
+
+        binding.arrowPrevious.setOnClickListener {
+            currentYearMonth.value = currentYearMonth.value.minusMonths(1)
+        }
+
+        binding.arrowNext.setOnClickListener {
+            currentYearMonth.value = currentYearMonth.value.plusMonths(1)
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                currentYearMonth.collect { yearMonth ->
+                    calendarView.scrollToMonth(yearMonth)
+
+                    binding.calendarMonth.text = getString(
+                        R.string.month_view, yearMonth.month.getDisplayName(
+                            TextStyle.SHORT,
+                            Locale.getDefault()
+                        ), yearMonth.year.toString()
+                    )
+                }
+            }
+        }
+
+        binding.buttonSave.setOnClickListener {
+            if(dbHelper.addSelectedDays(selectedDaysState.value)){
+                Toast.makeText(this, getString(R.string.save_cal), Toast.LENGTH_SHORT).show()
+            }else{
+                Toast.makeText(this, getString(R.string.no_save_cal), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
+
+class DayViewContainer(view: View) : ViewContainer(view) {
+    val textView1 = view.findViewById<TextView>(R.id.calendarDayText1)!!
+    val textView2 = view.findViewById<TextView>(R.id.calendarDayText2)!!
+    val cardView = view.findViewById<CardView>(R.id.card_view)!!
+}
+
+fun getDayBinder(
+    onDayClick: (LocalDate) -> Unit,
+    checkSelected: (CalendarDay) -> (Boolean),
+    color: Int
+) =
+    object : MonthDayBinder<DayViewContainer> {
+        override fun create(view: View) = DayViewContainer(view)
+
+        override fun bind(container: DayViewContainer, data: CalendarDay) = with(container) {
+            textView1.text = data.date.dayOfMonth.toString()
+            textView2.text = data.date.dayOfMonth.toString()
+
+            if (checkSelected(data) && data.position == DayPosition.MonthDate) {
+                cardView.visibility = View.VISIBLE
+                textView2.visibility = View.INVISIBLE
+                cardView.setCardBackgroundColor(color)
+            } else {
+                cardView.visibility = View.INVISIBLE
+            }
+
+            if (data.position != DayPosition.MonthDate) {
+                textView1.setTextColor(Color.GRAY)
+                textView2.setTextColor(Color.GRAY)
+            }
+
+            container.view.setOnClickListener {
+                if (data.position == DayPosition.MonthDate) {
+                    onDayClick(data.date)
+                }
+            }
+        }
+    }

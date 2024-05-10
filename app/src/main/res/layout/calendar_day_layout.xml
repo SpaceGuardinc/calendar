@@ -1,15 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/frame_layout">
+
+
+   <androidx.cardview.widget.CardView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       app:cardCornerRadius="666dp"
+       app:cardBackgroundColor="@color/black"
+       android:id="@+id/card_view"
+       android:layout_margin="2dp"
+       >
+
+       <TextView
+           android:id="@+id/calendarDayText1"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:gravity="center"
+           android:textSize="16sp"
+           tools:text="22"
+           android:textColor="@color/black"/>
+
+   </androidx.cardview.widget.CardView>
+
 
     <TextView
-        android:id="@+id/calendarDayText"
+        android:id="@+id/calendarDayText2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
         android:textSize="16sp"
-        tools:text="22" />
+        tools:text="22"
+        android:textColor="@color/black"/>
 
-</RelativeLayout>
+
+</FrameLayout>

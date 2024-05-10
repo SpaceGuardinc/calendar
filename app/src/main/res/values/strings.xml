@@ -57,5 +57,8 @@
     <string name="ok">Ок</string>
     <string name="cancel">Отмена</string>
     <string name="TypesOfWork">Виды работ</string>
+    <string name="month_view">%1$s %2$s</string>
+    <string name="save_cal">Сохранено успешно</string>
+    <string name="no_save_cal">Не удалось сохранить</string>
 
 </resources>

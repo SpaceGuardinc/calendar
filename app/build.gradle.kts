@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.plants"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -35,17 +35,18 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-    buildFeatures{
+    buildFeatures {
         viewBinding = true
         //noinspection DataBindingWithoutKapt
         dataBinding = true
     }
+
 }
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("com.kizitonwose.calendar:view:2.5.1")
-    implementation("com.google.android.material:material:1.4.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("com.android.volley:volley:1.2.1")
     implementation(libs.androidx.core.ktx)

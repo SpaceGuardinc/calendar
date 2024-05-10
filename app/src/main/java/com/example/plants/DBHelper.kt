@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.plants.model.SelectedData
 import com.example.plants.model.Vegetable
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
@@ -52,70 +51,42 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         onCreate(db)
     }
 
-    fun addSelectedDate(date: String, workType: String): Long {
-        Log.d("DBHelper", "Adding selected date: $date, work type: $workType")
-        val values = ContentValues().apply {
-            put(COLUMN_DATE, date)
-            put(COLUMN_WORK_TYPE, workType)
-        }
-        val db = this.writableDatabase
-        val id = db.insertWithOnConflict(TABLE_CALENDAR, null, values, SQLiteDatabase.CONFLICT_IGNORE)
-        db.close()
-        return id
-    }
-
     @SuppressLint("Range")
-    fun getSelectedDates(): List<String> {
-        Log.d("DBHelper", "Getting selected dates from database...")
-        val selectedDates = mutableListOf<String>()
-        val selectQuery = "SELECT $COLUMN_DATE FROM $TABLE_CALENDAR"
-        val db = this.readableDatabase
-        val cursor: Cursor?
-
-        try {
-            cursor = db.rawQuery(selectQuery, null)
-        } catch (e: Exception) {
-            Log.e("DBHelper", "Error while trying to get selected dates from database", e)
-            return selectedDates
-        }
+    fun getSelectedDays(): List<SelectedDay> = runCatching {
+        val selectedDays = mutableListOf<SelectedDay>()
+        val selectQuery = "SELECT $COLUMN_DATE,$COLUMN_WORK_TYPE FROM $TABLE_CALENDAR"
+        val cursor = readableDatabase.rawQuery(selectQuery, null)
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 val date = cursor.getString(cursor.getColumnIndex(COLUMN_DATE))
-                selectedDates.add(date)
-            } while (cursor.moveToNext())
-        }
-
-        cursor?.close()
-        db.close()
-        return selectedDates
-    }
-
-    @SuppressLint("Range")
-    fun getSelectedWorkTypes(): List<String> {
-        val selectedWorkTypes = mutableListOf<String>()
-        val selectQuery = "SELECT $COLUMN_WORK_TYPE FROM $TABLE_CALENDAR"
-        val db = this.readableDatabase
-        val cursor: Cursor?
-
-        try {
-            cursor = db.rawQuery(selectQuery, null)
-        } catch (e: Exception) {
-            Log.e("DBHelper", "Error while trying to get selected work types from database", e)
-            return selectedWorkTypes
-        }
-
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
                 val workType = cursor.getString(cursor.getColumnIndex(COLUMN_WORK_TYPE))
-                selectedWorkTypes.add(workType)
+                selectedDays.add(SelectedDay(workType = workType, dayDate = date))
             } while (cursor.moveToNext())
         }
+        return selectedDays
+    }.getOrNull() ?: listOf()
 
-        cursor?.close()
-        db.close()
-        return selectedWorkTypes
-    }
+    fun addSelectedDays(selectedDays: List<SelectedDay>) = kotlin.runCatching {
+        writableDatabase.execSQL("DELETE FROM $TABLE_CALENDAR")
+        val values = selectedDays.map {
+            ContentValues().apply {
+                put(COLUMN_DATE, it.dayDate)
+                put(COLUMN_WORK_TYPE, it.workType)
+            }
+        }
+        values.forEach { value ->
+            writableDatabase.insertWithOnConflict(
+                TABLE_CALENDAR,
+                null,
+                value,
+                SQLiteDatabase.CONFLICT_IGNORE
+            )
+        }
+        writableDatabase.close()
+        return true
+    }.getOrNull() ?: false
+
 
     fun insertVegetable(name: String): Long {
         val values = ContentValues()

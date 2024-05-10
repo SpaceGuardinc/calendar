@@ -152,7 +152,6 @@ import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.view.MonthDayBinder
 import com.kizitonwose.calendar.view.ViewContainer
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
@@ -163,6 +162,7 @@ import java.util.Locale
 data class SelectedDay(
     val workType: String = "",
     val dayDate: String = "",
+    val vegetableId: Int = -1
 )
 
 
@@ -182,6 +182,7 @@ class CalendarActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityCalendarBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val currentVegetableId = intent.extras?.getInt(VEG_ID_PARAM) ?: 0
 
         selectedDaysState.value = dbHelper.getSelectedDays()
 
@@ -196,14 +197,12 @@ class CalendarActivity : AppCompatActivity() {
         )
 
         val colorsArray = listOf(
-            Color.parseColor("#CD5C5C"),
-            Color.parseColor("#7FFF00"),
-            Color.parseColor("#00FFFF"),
-            Color.parseColor("#FF00FF"),
-            Color.parseColor("#00BFFF"),
-            Color.parseColor("#FFFF00"),
-
-            ).toTypedArray()
+            Color.parseColor("#a95e13"),
+            Color.parseColor("#EDD900"),
+            Color.parseColor("#b3dcfd"),
+            Color.parseColor("#44944A"),
+            Color.parseColor("#6D3F5B"),
+            Color.parseColor("#9B2D30"),).toTypedArray()
 
         val workColors = workTypes.zip(colorsArray)
 
@@ -231,7 +230,8 @@ class CalendarActivity : AppCompatActivity() {
                     onDayClick = { dayDate ->
                         val selectedDay = SelectedDay(
                             workTypes[spinner.selectedItemId.toInt()],
-                            dayDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                            dayDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            vegetableId = currentVegetableId
                         )
                         if(selectedDays.any { it == selectedDay }){
                             selectedDaysState.value = selectedDays - selectedDay
@@ -244,7 +244,7 @@ class CalendarActivity : AppCompatActivity() {
                         selectedDays.any {
                             it.dayDate == calendarDay.date.format(
                                 DateTimeFormatter.ISO_LOCAL_DATE
-                            ) && it.workType == workTypes[spinner.selectedItemId.toInt()]
+                            ) && it.workType == workTypes[spinner.selectedItemId.toInt()] && it.vegetableId == currentVegetableId
                         }
                     },
                     color = workColors[spinner.selectedItemId.toInt()].second

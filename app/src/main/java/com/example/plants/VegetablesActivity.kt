@@ -115,7 +115,9 @@ class VegetablesActivity : AppCompatActivity(), VegetablesAdapter.OnVegetableCli
 
     override fun onVegetableClicked(vegetable: Vegetable) {
         Log.d("VegetablesActivity", "onVegetableClicked called")
-        val intent = Intent(this, CalendarActivity::class.java)
+        val intent = Intent(this, CalendarActivity::class.java).apply {
+            putExtra(VEG_ID_PARAM, vegetable.id.toInt())
+        }
         startActivity(intent)
     }
 
@@ -149,3 +151,5 @@ class VegetablesActivity : AppCompatActivity(), VegetablesAdapter.OnVegetableCli
         dialog.show()
     }
 }
+
+const val VEG_ID_PARAM = "veg_id"

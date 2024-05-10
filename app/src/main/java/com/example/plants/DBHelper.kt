@@ -40,7 +40,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val CREATE_TABLE_CALENDAR = ("CREATE TABLE " + TABLE_CALENDAR + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY,"
                 + COLUMN_DATE + " TEXT,"
-                + COLUMN_WORK_TYPE + " TEXT" + ")")
+                + COLUMN_WORK_TYPE + " TEXT,"
+                + COLUMN_VEGETABLE_ID + " INTEGER" + ")")
         db.execSQL(CREATE_TABLE_CALENDAR)
     }
 
@@ -54,14 +55,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     @SuppressLint("Range")
     fun getSelectedDays(): List<SelectedDay> = runCatching {
         val selectedDays = mutableListOf<SelectedDay>()
-        val selectQuery = "SELECT $COLUMN_DATE,$COLUMN_WORK_TYPE FROM $TABLE_CALENDAR"
+        val selectQuery = "SELECT * FROM $TABLE_CALENDAR"
         val cursor = readableDatabase.rawQuery(selectQuery, null)
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 val date = cursor.getString(cursor.getColumnIndex(COLUMN_DATE))
                 val workType = cursor.getString(cursor.getColumnIndex(COLUMN_WORK_TYPE))
-                selectedDays.add(SelectedDay(workType = workType, dayDate = date))
+                val vegetableId = cursor.getInt(cursor.getColumnIndex(COLUMN_VEGETABLE_ID))
+                selectedDays.add(SelectedDay(workType = workType, dayDate = date, vegetableId = vegetableId))
             } while (cursor.moveToNext())
         }
         return selectedDays
@@ -73,6 +75,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             ContentValues().apply {
                 put(COLUMN_DATE, it.dayDate)
                 put(COLUMN_WORK_TYPE, it.workType)
+                put(COLUMN_VEGETABLE_ID, it.vegetableId)
             }
         }
         values.forEach { value ->
@@ -85,6 +88,8 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         }
         writableDatabase.close()
         return true
+    }.onFailure {
+        it
     }.getOrNull() ?: false
 
 
